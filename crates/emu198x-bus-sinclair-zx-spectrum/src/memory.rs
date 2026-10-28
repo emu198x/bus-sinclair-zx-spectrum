@@ -24,3 +24,45 @@ pub trait MemoryBus {
         self.read(addr)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A flat 64 KB space whose bottom 16 KB is ROM, with only the
+    /// required methods implemented.
+    struct FlatMemory {
+        bytes: [u8; 0x10000],
+    }
+
+    impl MemoryBus for FlatMemory {
+        fn read(&self, addr: u16) -> u8 {
+            self.bytes[usize::from(addr)]
+        }
+
+        fn write(&mut self, addr: u16, value: u8) {
+            if addr >= 0x4000 {
+                self.bytes[usize::from(addr)] = value;
+            }
+        }
+
+        fn is_contended(&self, addr: u16) -> bool {
+            (0x4000..0x8000).contains(&addr)
+        }
+    }
+
+    #[test]
+    fn screen_reads_default_to_ordinary_reads() {
+        let mut memory = FlatMemory {
+            bytes: [0; 0x10000],
+        };
+        memory.write(0x4000, 0xA5);
+        memory.write(0x0000, 0x5A);
+
+        assert_eq!(memory.read_screen(0x4000), 0xA5);
+        assert_eq!(memory.read_screen(0x0000), memory.read(0x0000));
+        assert_eq!(memory.read(0x0000), 0, "ROM writes are ignored");
+        assert!(memory.is_contended(0x4000));
+        assert!(!memory.is_contended(0x8000));
+    }
+}
