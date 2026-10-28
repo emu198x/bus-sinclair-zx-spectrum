@@ -150,3 +150,38 @@ pub trait MemoryIntercept {
     /// every read after it. Default no-op.
     fn after_m1(&mut self, _addr: u16) {}
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A device that overrides nothing, so every call reaches a default.
+    struct Inert;
+
+    impl Peripheral for Inert {}
+    impl MemoryIntercept for Inert {}
+
+    #[test]
+    fn peripheral_defaults_claim_nothing_and_float_the_bus() {
+        let mut device = Inert;
+
+        assert!(!device.claims_port(0x001F));
+        assert!(!device.claims_port(0xFFFF));
+        assert_eq!(device.read(0x001F), 0xFF);
+        device.write(0x001F, 0x00);
+        device.on_m1(0x0066);
+        device.tick(0);
+        assert_eq!(device.read(0x001F), 0xFF, "hooks leave no state behind");
+    }
+
+    #[test]
+    fn memory_intercept_defaults_leave_every_cycle_to_the_machine() {
+        let mut device = Inert;
+
+        assert_eq!(device.read_memory(0x0000), None);
+        assert_eq!(device.read_memory(0x3FFF), None);
+        assert!(!device.write_memory(0x2000, 0x42));
+        device.after_m1(0x0008);
+        assert_eq!(device.read_memory(0x0008), None);
+    }
+}
