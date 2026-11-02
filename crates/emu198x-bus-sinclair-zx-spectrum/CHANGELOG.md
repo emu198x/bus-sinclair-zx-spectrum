@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-02
+
+### Fixed
+
+- Run the Pentagon 128 at 3.5 MHz from a 14 MHz master clock, as the original
+  did, rather than 14.336 MHz: a 71,680 T-state frame lasts 20.48 ms, the
+  Pentagon's 48.83 Hz refresh (emu198x/emu198x#2231). 14.336 MHz is the ZX
+  Spectrum Next's VGA 50Hz Pentagon mode.
+
 ## 0.1.0
 
 ### Added
