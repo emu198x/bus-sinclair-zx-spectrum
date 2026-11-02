@@ -185,11 +185,19 @@ pub const TIMING_128K: FrameTiming = FrameTiming {
 
 /// Pentagon 128 (Russian Spectrum clone, no contention).
 ///
-/// Different crystal (14.336 MHz, slightly faster than the 48K), 224
-/// T-states/line, 320 lines (extra VBlank). The CPU runs at full
-/// speed — the Pentagon ULA never gates the clock.
+/// The 48K's 14 MHz crystal and 3.5 MHz CPU, 224 T-states/line, 320 lines
+/// (extra VBlank), so a frame of 71,680 T-states lasts 20.48 ms: the
+/// Pentagon's 48.83 Hz refresh. The CPU runs at full speed — the Pentagon
+/// ULA never gates the clock.
+///
+/// Sources: the ZX Spectrum Next wiki's *Refresh Rates* ("Pentagon = 224T *
+/// 320 = 71680T per frame = 48.83Hz") and *FAQ* ("Pentagon has a non-standard
+/// screen refresh rate of 48.828Hz"); Grussu, *Spectrumpedia* vol. 1, p. 458
+/// ("3.5 MHz CPU"). A 14.336 MHz clock is the Next's *VGA 50Hz* Pentagon
+/// mode, which speeds the machine up to refresh at 50 Hz; the original
+/// didn't run at it.
 pub const TIMING_PENTAGON: FrameTiming = FrameTiming {
-    master_hz: 14_336_000,
+    master_hz: 14_000_000,
     cpu_divisor: 4,
     tstates_per_line: 224,
     halfcycles_per_line: 224 * 4,
@@ -319,6 +327,17 @@ mod tests {
         assert_eq!(TIMING_128K.contention_start_tstate, 14_361);
         assert_eq!(TIMING_128K.contention_phase, 1);
         assert_eq!(TIMING_128K.interrupt_length_tstates, 36);
+    }
+
+    /// The Pentagon's frame is longer than the 48K's, not faster: the same
+    /// 3.5 MHz CPU over 71,680 T-states gives a 20.48 ms frame, 48.83 Hz.
+    #[test]
+    fn pentagon_runs_at_3_5_mhz_with_a_48_83_hz_frame() {
+        assert_eq!(TIMING_PENTAGON.master_hz, TIMING_48K.master_hz);
+        let cpu_hz = TIMING_PENTAGON.master_hz / u64::from(TIMING_PENTAGON.cpu_divisor);
+        assert_eq!(cpu_hz, 3_500_000);
+        let frame_us = u64::from(TIMING_PENTAGON.tstates_per_frame) * 1_000_000 / cpu_hz;
+        assert_eq!(frame_us, 20_480);
     }
 
     #[test]
