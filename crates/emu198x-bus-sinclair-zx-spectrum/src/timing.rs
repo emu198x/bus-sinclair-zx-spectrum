@@ -192,7 +192,7 @@ pub const TIMING_128K: FrameTiming = FrameTiming {
 ///
 /// Sources: the ZX Spectrum Next wiki's *Refresh Rates* ("Pentagon = 224T *
 /// 320 = 71680T per frame = 48.83Hz") and *FAQ* ("Pentagon has a non-standard
-/// screen refresh rate of 48.828Hz"); Grussu, *Spectrumpedia* vol. 1, p. 458
+/// screen refresh rate of 48.828Hz"); Grussu, *Spectrumpedia* vol. 1, printed p. 446
 /// ("3.5 MHz CPU"). A 14.336 MHz clock is the Next's *VGA 50Hz* Pentagon
 /// mode, which speeds the machine up to refresh at 50 Hz; the original
 /// didn't run at it.
